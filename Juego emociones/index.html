@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Juego de Emociones WFIN</title>
+<style>
+    body { font-family: Arial; text-align: center; }
+    .container { display: flex; flex-wrap: wrap; justify-content: center; }
+    .card { margin: 10px; padding: 10px; border: 1px solid #ccc; width: 200px; }
+    .dropzone { border: 2px dashed #aaa; height: 40px; margin-top: 10px; }
+    .emotion { margin: 5px; padding: 5px 10px; background: #f0f0f0; cursor: grab; display: inline-block; }
+    #timer { font-size: 20px; font-weight: bold; margin: 20px; }
+</style>
+</head>
+<body>
+<h2>Arrastra la emoción al rostro correcto</h2>
+<div id="timer">Tiempo restante: 20s</div>
+<div class="container" id="gameArea"></div>
+<br><br>
+<div id="emotions">
+    <span class="emotion">Alegría</span>
+    <span class="emotion">Tristeza</span>
+    <span class="emotion">Enojo</span>
+    <span class="emotion">Miedo</span>
+    <span class="emotion">Sorpresa</span>
+    <span class="emotion">Indecisión</span>
+    <span class="emotion">Estrés</span>
+    <span class="emotion">Vergüenza</span>
+    <span class="emotion">Desagrado</span>
+</div>
+<br>
+<button onclick="checkAnswers()">Finalizar</button>
+
+<script>
+const images = [
+    {src:'alegria.jpg', correct:'Alegría'},
+    {src:'tristeza.jpg', correct:'Tristeza'},
+    {src:'enojo.jpg', correct:'Enojo'},
+    {src:'miedo.jpg', correct:'Miedo'},
+    {src:'sorpresa.jpg', correct:'Sorpresa'},
+    {src:'indecision.jpg', correct:'Indecisión'},
+    {src:'estres.jpg', correct:'Estrés'},
+    {src:'verguenza.jpg', correct:'Vergüenza'},
+    {src:'desagrado.jpg', correct:'Desagrado'}
+];
+
+function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+}
+
+function startGame() {
+    const gameArea = document.getElementById('gameArea');
+    gameArea.innerHTML = '';
+    let shuffled = [...images];
+    shuffle(shuffled);
+    shuffled.forEach((item, index) => {
+        gameArea.innerHTML += `
+            <div class='card'>
+                <img src='${item.src}' width='180'><br>
+                <div class='dropzone' data-correct='${item.correct}'>?</div>
+            </div>`;
+    });
+
+    const emotions = document.querySelectorAll('.emotion');
+    const dropzones = document.querySelectorAll('.dropzone');
+
+    emotions.forEach(emotion => {
+        emotion.draggable = true;
+        emotion.addEventListener('dragstart', e => {
+            e.dataTransfer.setData('text/plain', emotion.textContent);
+        });
+    });
+
+    dropzones.forEach(zone => {
+        zone.addEventListener('dragover', e => e.preventDefault());
+        zone.addEventListener('drop', e => {
+            e.preventDefault();
+            const data = e.dataTransfer.getData('text/plain');
+            zone.textContent = data;
+        });
+    });
+}
+
+// Timer
+let timeLeft = 20;
+const timerElement = document.getElementById('timer');
+const countdown = setInterval(() => {
+    timeLeft--;
+    timerElement.textContent = `Tiempo restante: ${timeLeft}s`;
+    if (timeLeft <= 0) {
+        clearInterval(countdown);
+        checkAnswers();
+    }
+}, 1000);
+
+function checkAnswers() {
+    const dropzones = document.querySelectorAll('.dropzone');
+    let correctCount = 0;
+    dropzones.forEach(zone => {
+        if (zone.textContent === zone.dataset.correct) {
+            correctCount++;
+            zone.style.border = '2px solid green';
+        } else {
+            zone.style.border = '2px solid red';
+        }
+    });
+    if (correctCount === images.length) {
+        alert('¡Felicidades! Todas las respuestas son correctas.');
+    } else {
+        alert(`Respuestas correctas: ${correctCount} de ${images.length}. Intenta de nuevo.`);
+    }
+}
+
+startGame();
+</script>
+</body>
+</html>
